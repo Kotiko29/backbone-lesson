@@ -5,72 +5,47 @@
         Collections: {}
     };
 
-    // App.Models.Person
-    // App.Views.PersonView
-    // App.Collections.PeopleCollection
 
     // Хелпер шаблона (в основном пишется в отдельных модулях, в замыканиях и прочее)
     window.template = function(id) {
         return _.template($(`#${id}`).html()) ;
     };
 
+//////////////Создаем классы//////////////////
 
-
-
-
-
-    // Модель человека (модель одного человека)
-    App.Models.Person = Backbone.Model.extend({
-        defaults: {
-            name: 'Dima',
-            age: 48,
-            job: 'Доктор',
-            email: "Sincere@april.biz"
-        },
-
-        validate: function( attrs, options ) {
-            if(attrs.age <= 0) {
-                return 'Вы указали некорректный возраст';
-            }
-
-            if(!attrs.name) {
-                return 'У вас нет имени?';
-            }
-        },
-    });
-    var person = new App.Models.Person();
-
-    // Список людей (коллекция моделей)
-    App.Collections.PeopleCollection = Backbone.Collection.extend({
-        model: App.Models.Person,
-
-    });
-
-
-    // Вид одного человека
-    App.Views.PersonView = Backbone.View.extend({
+    //Модель простой задачи
+    App.Models.Task = Backbone.Model.extend({});
+    // Вид одной задачи
+    App.Views.Task = Backbone.View.extend({
+        // Для вида прописываем корневой элемент
         tagName: 'li',
 
-        template: template('person-id'),
-
-        initialize: function() {
-            this.render();
-        },
-
-        
-
+        // Функция рендера для отдельной задачи
         render: function() {
-            
-            this.$el.html(this.template(this.model.toJSON()));
-
+            // Функция рендер будет наполнять корневой элемент
+            this.$el.html( this.model.get('title') );
             return this;
         }
-
     });
 
-    //Вид списка людей (вид коллекции)
+///////////////Создаем экземпляры классов///////////////
 
-    App.Views.PeopleView = Backbone.View.extend({
+    // Для модели прописывам данные
+    // var task = new App.Models.Task({
+    //     title: 'Сходить в магазин',
+    //     priority: 4
+    // });
+
+    //......... Создаем коллекцию для моделей
+
+    // создадим сначала класс
+
+    App.Collections.Tasks = Backbone.Collection.extend({
+        model: App.Models.Task,
+    });
+
+    // Надо создать для коллеции вид, который будет рендерить сразу все модели
+    App.Views.Tasks = Backbone.View.extend({
         tagName: 'ul',
 
         initialize: function() {
@@ -78,48 +53,43 @@
         },
 
         render: function() {
-            // пройтись по всему списку и отрендерить дкаждый personView
-                // Можно использовать underscore _.each(this.collection) 
-                // Можно использовать jQuery $.each(this.collection)
-                // В прототипе коллекции есть метод each, который лучше использовать
-                this.collection.each(function(person) {
-                    var personView = new App.Views.PersonView({model: person});
-                    
-                    this.$el.append(personView.render().el);
-
-                }, this);
-            // Вставить в главный тег ul (this.$el)
-                return this;
+            console.log(this.collection);
+            this.collection.each(this.addOne, this);
+            return this;
+        },
+        addOne: function(task) {
+            // Создаем новый дочерний вид
+                // Для вида надо задать модель обязательно
+            var taskView = new App.Views.Task({model: task});
+            // Добавляем его в корневой элемент
+            this.$el.append(taskView.render().el);
         }
     });
 
+   /////Создаем экземпляр класса коллекции
 
-    // передаем данные в коллекцию моделей
-
-    var peopleCollection = new App.Collections.PeopleCollection([
+    var tasksCollection = new App.Collections.Tasks([
         {
-            name: 'Ivan',
-            age: 5,
+            title: 'Сходить в магазин',
+            priority: 4
         },
         {
-            name: 'Anna',
-            age: 21,
-            job: 'Студентка'
+            title: 'Сделать задание',
+            priority: 3
         },
         {
-            name: 'Alex',
-            age: 35, 
-            job: 'Сантехник'
+            title: 'Погулять с собакой',
+            priority: 2
         },
         {
-            name: 'Anton',
-            job: 'Таксист'
+            title: 'Работа',
+            priority: 1
         }
     ]);
 
-    var peopleView = new App.Views.PeopleView({collection: peopleCollection});
+    var tasksView = new App.Views.Tasks({collection: tasksCollection});
 
-
-    $(document.body).append(peopleView.render().el);
+    tasksView.render();
+    $('body').html(tasksView.el);
 
 }());
