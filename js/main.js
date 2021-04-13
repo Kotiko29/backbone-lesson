@@ -14,16 +14,42 @@
 //////////////Создаем классы//////////////////
 
     //Модель простой задачи
-    App.Models.Task = Backbone.Model.extend({});
+    App.Models.Task = Backbone.Model.extend({
+        validate: function(attrs) {
+            if(! $.trim(attrs.title)) {
+                return 'Имя задачи должно быть валидным';
+            }
+            
+        }
+    });
     // Вид одной задачи
     App.Views.Task = Backbone.View.extend({
         // Для вида прописываем корневой элемент
         tagName: 'li',
+        template: template('taskTemplate'),
+        events: {
+            'click .edit': 'editTask'
+        },
+
+        initialize: function() {
+            this.model.on('change', this.render, this);
+            //_bindAll(this, 'editTask', 'render') — смена контекста (если не указывать this)
+        },
+
+        editTask: function() {
+            var newTaskTitle = prompt('Как назовём задачу?', this.model.get('title'));
+            // if(!newTaskTitle) return;
+
+            this.model.set('title', newTaskTitle, {validate: true});
+        },
 
         // Функция рендера для отдельной задачи
         render: function() {
             // Функция рендер будет наполнять корневой элемент
-            this.$el.html( this.model.get('title') );
+            // this.$el.html( this.model.get('title') );
+            var template = this.template(this.model.toJSON());
+            this.$el.html(template);
+
             return this;
         }
     });
@@ -89,7 +115,7 @@
 
     var tasksView = new App.Views.Tasks({collection: tasksCollection});
 
-    tasksView.render();
-    $('body').html(tasksView.el);
+    $('.tasks').html(tasksView.render().el);
 
 }());
+
